@@ -178,8 +178,10 @@
 #define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_CURRENT_METER | FEATURE_VBAT | FEATURE_TELEMETRY )
 #define CURRENT_METER_SCALE   179
 
+#ifndef MATEKF405_FWS5SERVO     // S5SERVO target uses S5 pin for servo output, no LED available
 #define USE_LED_STRIP
 #define WS2811_PIN                      PA15 // S5 pad for INAV
+#endif
 
 #define USE_SPEKTRUM_BIND
 #define BIND_PIN                PA3 //  RX2

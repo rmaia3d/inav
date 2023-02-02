@@ -17,6 +17,11 @@ Due to differences on the board (I2C - see below), there are two firmware varian
 | Matek F405-AIO, STD, CTR | inav_x.y.z_MATEKF405.hex<br/>inav_x.y.z_MATEKF405_SERVOS6.hex |
 | Matek F405-OSD | inav_x.y.z_MATEKF405OSD.hex |
 
+### Alternate targets
+
+#### MATEKF045_FWS5SERVO
+`MATEKF045_FWS5SERVO` replaces S5 pad from LED to fixed wing servo PWM output. This enables fixed wing setups where all 6 pwm outputs may be needed for servos, while maintaining all other functionalities (except for LED strip support).
+
 ## Hardware features
 
 * MCU: STM32F405RGT6, 168MHz
