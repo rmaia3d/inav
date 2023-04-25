@@ -25,7 +25,7 @@ tables:
     values: ["NONE", "SERIAL", "MSP", "SIM (SITL)"]
     enum: rxReceiverType_e
   - name: serial_rx
-    values: ["SPEK1024", "SPEK2048", "SBUS", "SUMD", "IBUS", "JETIEXBUS", "CRSF", "FPORT", "SBUS_FAST", "FPORT2", "SRXL2", "GHST", "MAVLINK"]
+    values: ["SPEK1024", "SPEK2048", "SBUS", "SUMD", "IBUS", "JETIEXBUS", "CRSF", "FPORT", "SBUS_FAST", "FPORT2", "SRXL2", "GHST", "MAVLINK", "FBUS"]
   - name: blackbox_device
     values: ["SERIAL", "SPIFLASH", "SDCARD"]
   - name: motor_pwm_protocol
@@ -72,7 +72,7 @@ tables:
     values: ["BATTERY", "CELL"]
     enum: osd_stats_min_voltage_unit_e
   - name: osd_video_system
-    values: ["AUTO", "PAL", "NTSC", "HDZERO", "DJIWTF", "AVATAR", "BF43COMPAT"]
+    values: ["AUTO", "PAL", "NTSC", "HDZERO", "DJIWTF", "AVATAR", "BF43COMPAT", "BFHDCOMPAT"]
     enum: videoSystem_e
   - name: osd_telemetry
     values: ["OFF", "ON","TEST"]
