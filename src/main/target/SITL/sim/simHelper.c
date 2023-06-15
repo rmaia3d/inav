@@ -30,7 +30,7 @@
 
 #include "target/SITL/sim/simHelper.h"
 
-inline int16_t constrainToInt16(float value)
+inline int16_t constrainToInt16(double value)
 {
     return (int16_t)round(constrain(value, INT16_MIN, INT16_MAX));
 }

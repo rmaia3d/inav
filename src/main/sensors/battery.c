@@ -716,11 +716,11 @@ uint16_t getPowerSupplyImpedance(void) {
 }
 
 // returns cW (0.01W)
-int32_t calculateAveragePower(void) {
+int32_t calculateAveragePower() {
     return (int64_t)mWhDrawn * 360 / getFlightTime();
 }
 
 // returns mWh / meter
-int32_t calculateAverageEfficiency(void) {
+int32_t calculateAverageEfficiency() {
     return getFlyingEnergy() * 100 / getTotalTravelDistance();
 }

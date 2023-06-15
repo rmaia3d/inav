@@ -670,7 +670,7 @@ void applyFixedWingPitchRollThrottleController(navigationFSMStateFlags_t navStat
 #endif
 }
 
-bool isFixedWingAutoThrottleManuallyIncreased(void)
+bool isFixedWingAutoThrottleManuallyIncreased()
 {
     return isAutoThrottleManuallyIncreased;
 }

@@ -816,11 +816,6 @@ static bool gpsNewFrameUBLOX(uint8_t data)
     return parsed;
 }
 
-static uint16_t hz2rate(uint8_t hz)
-{
-    return 1000 / hz;
-}
-
 STATIC_PROTOTHREAD(gpsConfigure)
 {
     ptBegin(gpsConfigure);
@@ -890,17 +885,10 @@ STATIC_PROTOTHREAD(gpsConfigure)
         configureMSG(MSG_CLASS_UBX, MSG_NAV_SIG, 0);
         ptWait(_ack_state == UBX_ACK_GOT_ACK);
 
-        if ((gpsState.gpsConfig->provider == GPS_UBLOX7PLUS) && (gpsState.hwVersion >= UBX_HW_VERSION_UBLOX7)) {
-            configureRATE(hz2rate(gpsState.gpsConfig->ubloxNavHz)); // default 10Hz
-        } else {
-            configureRATE(200); // 5Hz
-        }
-        ptWait(_ack_state == UBX_ACK_GOT_ACK || _ack_state == UBX_ACK_GOT_NAK);
-
-        if(_ack_state == UBX_ACK_GOT_NAK) { // Fallback to safe 5Hz in case of error
-            configureRATE(200); // 5Hz
-            ptWait(_ack_state == UBX_ACK_GOT_ACK);
-        }
+        // u-Blox 9 receivers such as M9N can do 10Hz as well, but the number of used satellites will be restricted to 16.
+        // Not mentioned in the datasheet
+        configureRATE(200);
+        ptWait(_ack_state == UBX_ACK_GOT_ACK);
     }
     else {
         // u-Blox 5/6/7/8 or unknown
@@ -928,17 +916,12 @@ STATIC_PROTOTHREAD(gpsConfigure)
             ptWait(_ack_state == UBX_ACK_GOT_ACK);
 
             if ((gpsState.gpsConfig->provider == GPS_UBLOX7PLUS) && (gpsState.hwVersion >= UBX_HW_VERSION_UBLOX7)) {
-                configureRATE(hz2rate(gpsState.gpsConfig->ubloxNavHz)); // default 10Hz
+                configureRATE(100); // 10Hz
             }
             else {
                 configureRATE(200); // 5Hz
             }
-            ptWait(_ack_state == UBX_ACK_GOT_ACK || _ack_state == UBX_ACK_GOT_NAK);
-
-            if(_ack_state == UBX_ACK_GOT_NAK) { // Fallback to safe 5Hz in case of error
-                configureRATE(200); // 5Hz
-                ptWait(_ack_state == UBX_ACK_GOT_ACK);
-            }
+            ptWait(_ack_state == UBX_ACK_GOT_ACK);
         }
         // u-Blox 5/6 doesn't support PVT, use legacy config
         // UNKNOWN also falls here, use as a last resort

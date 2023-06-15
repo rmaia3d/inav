@@ -94,7 +94,6 @@ typedef struct gpsConfig_s {
     gpsDynModel_e dynModel;
     bool ubloxUseGalileo;
     uint8_t gpsMinSats;
-    uint8_t ubloxNavHz;
 } gpsConfig_t;
 
 PG_DECLARE(gpsConfig_t, gpsConfig);

@@ -17,17 +17,14 @@
 
 #pragma once
 
-#include "config/parameter_group.h"
+typedef enum {
+    FRSKY_VFAS_PRECISION_LOW = 0,
+    FRSKY_VFAS_PRECISION_HIGH
+} frskyVFasPrecision_e;
 
-typedef struct boardAlignment_s {
-    int16_t rollDeciDegrees;
-    int16_t pitchDeciDegrees;
-    int16_t yawDeciDegrees;
-} boardAlignment_t;
+void handleFrSkyTelemetry(void);
+void checkFrSkyTelemetryState(void);
 
-PG_DECLARE(boardAlignment_t, boardAlignment);
-
-void initBoardAlignment(void);
-void updateBoardAlignment(int16_t roll, int16_t pitch);
-void applySensorAlignment(int32_t * dest, int32_t * src, uint8_t rotation);
-void applyBoardAlignment(int32_t *vec);
+void initFrSkyTelemetry(void);
+void configureFrSkyTelemetryPort(void);
+void freeFrSkyTelemetryPort(void);

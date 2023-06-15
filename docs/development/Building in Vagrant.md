@@ -44,7 +44,7 @@ vagrant ssh
 ```
 
 ## Building firmware
-In the virtual machine, go to the INAV directory
+In the virtual machine, go to the inav directory
 ```
 cd inav
 ```

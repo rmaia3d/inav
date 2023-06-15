@@ -120,6 +120,7 @@ bool cliMode = false;
 #include "sensors/esc_sensor.h"
 #endif
 
+#include "telemetry/frsky_d.h"
 #include "telemetry/telemetry.h"
 #include "build/debug.h"
 
