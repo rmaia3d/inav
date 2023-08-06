@@ -15,21 +15,20 @@
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdbool.h>
-#include <stdint.h>
 #include <ctype.h>
 #include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
 
-#include "platform.h"
 #include "build/build_config.h"
-
+#include "platform.h"
 
 #ifdef USE_GPS
 
 #include "build/debug.h"
 
-#include "common/maths.h"
 #include "common/axis.h"
+#include "common/maths.h"
 #include "common/utils.h"
 
 #include "config/parameter_group.h"
@@ -45,13 +44,13 @@
 #include "fc/runtime_config.h"
 #endif
 
-#include "sensors/sensors.h"
 #include "sensors/compass.h"
+#include "sensors/sensors.h"
 
-#include "io/serial.h"
 #include "io/gps.h"
 #include "io/gps_private.h"
 #include "io/gps_ublox.h"
+#include "io/serial.h"
 
 #include "navigation/navigation.h"
 
@@ -61,117 +60,119 @@
 #include "fc/runtime_config.h"
 #include "fc/settings.h"
 
-typedef struct {
-    bool                isDriverBased;
-    portMode_t          portMode;           // Port mode RX/TX (only for serial based)
-    void                (*restart)(void);   // Restart protocol driver thread
-    void                (*protocol)(void);  // Process protocol driver thread
+typedef struct
+{
+    bool isDriverBased;
+    portMode_t portMode;    // Port mode RX/TX (only for serial based)
+    void (*restart)(void);  // Restart protocol driver thread
+    void (*protocol)(void); // Process protocol driver thread
 } gpsProviderDescriptor_t;
 
 // GPS public data
 gpsReceiverData_t gpsState;
-gpsStatistics_t   gpsStats;
+gpsStatistics_t gpsStats;
 gpsSolutionData_t gpsSol;
 
 // Map gpsBaudRate_e index to baudRate_e
-baudRate_e gpsToSerialBaudRate[GPS_BAUDRATE_COUNT] = { BAUD_115200, BAUD_57600, BAUD_38400, BAUD_19200, BAUD_9600, BAUD_230400, BAUD_460800, BAUD_921600 };
+baudRate_e gpsToSerialBaudRate[GPS_BAUDRATE_COUNT] = {BAUD_115200, BAUD_57600,  BAUD_38400,  BAUD_19200,
+                                                      BAUD_9600,   BAUD_230400, BAUD_460800, BAUD_921600};
 
 static gpsProviderDescriptor_t gpsProviders[GPS_PROVIDER_COUNT] = {
-    /* NMEA GPS */
+/* NMEA GPS */
 #ifdef USE_GPS_PROTO_NMEA
-    { false, MODE_RX, gpsRestartNMEA, &gpsHandleNMEA },
+    {false, MODE_RX, gpsRestartNMEA, &gpsHandleNMEA},
 #else
-    { false, 0, NULL, NULL },
+    {false, 0, NULL, NULL},
 #endif
 
-    /* UBLOX binary */
+/* UBLOX binary */
 #ifdef USE_GPS_PROTO_UBLOX
-    { false, MODE_RXTX, &gpsRestartUBLOX, &gpsHandleUBLOX },
+    {false, MODE_RXTX, &gpsRestartUBLOX, &gpsHandleUBLOX},
 #else
-    { false, 0, NULL, NULL },
+    {false, 0, NULL, NULL},
 #endif
 
-    /* UBLOX7PLUS binary */
+/* UBLOX7PLUS binary */
 #ifdef USE_GPS_PROTO_UBLOX
-    { false, MODE_RXTX, &gpsRestartUBLOX, &gpsHandleUBLOX },
+    {false, MODE_RXTX, &gpsRestartUBLOX, &gpsHandleUBLOX},
 #else
-    { false, 0,  NULL, NULL },
+    {false, 0, NULL, NULL},
 #endif
 
-    /* MSP GPS */
+/* MSP GPS */
 #ifdef USE_GPS_PROTO_MSP
-    { true, 0, &gpsRestartMSP, &gpsHandleMSP },
+    {true, 0, &gpsRestartMSP, &gpsHandleMSP},
 #else
-    { false, 0, NULL, NULL },
+    {false, 0, NULL, NULL},
 #endif
 
 #ifdef USE_GPS_FAKE
     {true, 0, &gpsFakeRestart, &gpsFakeHandle},
 #else
-    { false, 0, NULL, NULL },
+    {false, 0, NULL, NULL},
 #endif
 
 };
 
-PG_REGISTER_WITH_RESET_TEMPLATE(gpsConfig_t, gpsConfig, PG_GPS_CONFIG, 2);
+PG_REGISTER_WITH_RESET_TEMPLATE(gpsConfig_t, gpsConfig, PG_GPS_CONFIG, 4);
 
-PG_RESET_TEMPLATE(gpsConfig_t, gpsConfig,
-    .provider = SETTING_GPS_PROVIDER_DEFAULT,
-    .sbasMode = SETTING_GPS_SBAS_MODE_DEFAULT,
-    .autoConfig = SETTING_GPS_AUTO_CONFIG_DEFAULT,
-    .autoBaud = SETTING_GPS_AUTO_BAUD_DEFAULT,
-    .dynModel = SETTING_GPS_DYN_MODEL_DEFAULT,
-    .gpsMinSats = SETTING_GPS_MIN_SATS_DEFAULT,
-    .ubloxUseGalileo = SETTING_GPS_UBLOX_USE_GALILEO_DEFAULT,
-    .ubloxUseBeidou = SETTING_GPS_UBLOX_USE_BEIDOU_DEFAULT,
-    .ubloxUseGlonass = SETTING_GPS_UBLOX_USE_GLONASS_DEFAULT,
-    .ubloxNavHz = SETTING_GPS_UBLOX_NAV_HZ_DEFAULT
-);
+PG_RESET_TEMPLATE(gpsConfig_t, gpsConfig, .provider = SETTING_GPS_PROVIDER_DEFAULT,
+                  .sbasMode = SETTING_GPS_SBAS_MODE_DEFAULT, .autoConfig = SETTING_GPS_AUTO_CONFIG_DEFAULT,
+                  .autoBaud = SETTING_GPS_AUTO_BAUD_DEFAULT, .dynModel = SETTING_GPS_DYN_MODEL_DEFAULT,
+                  .gpsMinSats = SETTING_GPS_MIN_SATS_DEFAULT, .ubloxUseGalileo = SETTING_GPS_UBLOX_USE_GALILEO_DEFAULT,
+                  .ubloxUseBeidou = SETTING_GPS_UBLOX_USE_BEIDOU_DEFAULT,
+                  .ubloxUseGlonass = SETTING_GPS_UBLOX_USE_GLONASS_DEFAULT,
+                  .ubloxNavHz = SETTING_GPS_UBLOX_NAV_HZ_DEFAULT,
+                  .autoBaudMax = SETTING_GPS_AUTO_BAUD_MAX_SUPPORTED_DEFAULT);
 
+int gpsBaudRateToInt(gpsBaudRate_e baudrate)
+{
+    switch (baudrate)
+    {
+    case GPS_BAUDRATE_115200:
+        return 115200;
+    case GPS_BAUDRATE_57600:
+        return 57600;
+    case GPS_BAUDRATE_38400:
+        return 38400;
+    case GPS_BAUDRATE_19200:
+        return 19200;
+    case GPS_BAUDRATE_9600:
+        return 9600;
+    case GPS_BAUDRATE_230400:
+        return 230400;
+    case GPS_BAUDRATE_460800:
+        return 460800;
+    case GPS_BAUDRATE_921600:
+        return 921600;
+    default:
+        return 0;
+    }
+}
 
 int getGpsBaudrate(void)
 {
-    switch(gpsState.baudrateIndex)
-    {
-        case GPS_BAUDRATE_115200:
-            return 115200;
-        case GPS_BAUDRATE_57600:
-            return 57600;
-        case GPS_BAUDRATE_38400:
-            return 38400;
-        case GPS_BAUDRATE_19200:
-            return 19200;
-        case GPS_BAUDRATE_9600:
-            return 9600;
-        case GPS_BAUDRATE_230400:
-            return 230400;
-        case GPS_BAUDRATE_460800:
-            return 460800;
-        case GPS_BAUDRATE_921600:
-            return 921600;
-        default:
-            return 0;
-    }
+    return gpsBaudRateToInt(gpsState.baudrateIndex);
 }
 
 const char *getGpsHwVersion(void)
 {
-    switch(gpsState.hwVersion)
+    switch (gpsState.hwVersion)
     {
-        case UBX_HW_VERSION_UBLOX5:
-            return "UBLOX5";
-        case UBX_HW_VERSION_UBLOX6:
-            return "UBLOX6";
-        case UBX_HW_VERSION_UBLOX7:
-            return "UBLOX7";
-        case UBX_HW_VERSION_UBLOX8:
-            return "UBLOX8";
-        case UBX_HW_VERSION_UBLOX9:
-            return "UBLOX9";
-        case UBX_HW_VERSION_UBLOX10:
-            return "UBLOX10";
-        default:
-            return "Unknown";
+    case UBX_HW_VERSION_UBLOX5:
+        return "UBLOX5";
+    case UBX_HW_VERSION_UBLOX6:
+        return "UBLOX6";
+    case UBX_HW_VERSION_UBLOX7:
+        return "UBLOX7";
+    case UBX_HW_VERSION_UBLOX8:
+        return "UBLOX8";
+    case UBX_HW_VERSION_UBLOX9:
+        return "UBLOX9";
+    case UBX_HW_VERSION_UBLOX10:
+        return "UBLOX10";
+    default:
+        return "Unknown";
     }
 }
 
@@ -193,7 +194,8 @@ void gpsSetState(gpsState_e state)
 
 static void gpsUpdateTime(void)
 {
-    if (!rtcHasTime() && gpsSol.flags.validTime && gpsSol.time.year != 0) {
+    if (!rtcHasTime() && gpsSol.flags.validTime && gpsSol.time.year != 0)
+    {
         rtcSetDateTime(&gpsSol.time);
     }
 }
@@ -208,10 +210,12 @@ void gpsSetProtocolTimeout(timeMs_t timeoutMs)
 void gpsProcessNewSolutionData(void)
 {
     // Set GPS fix flag only if we have 3D fix
-    if (gpsSol.fixType == GPS_FIX_3D && gpsSol.numSat >= gpsConfig()->gpsMinSats) {
+    if (gpsSol.fixType == GPS_FIX_3D && gpsSol.numSat >= gpsConfig()->gpsMinSats)
+    {
         ENABLE_STATE(GPS_FIX);
     }
-    else {
+    else
+    {
         /* When no fix available - reset flags as well */
         gpsSol.flags.validVelNE = false;
         gpsSol.flags.validVelD = false;
@@ -259,7 +263,7 @@ void gpsPreInit(void)
 {
     // Make sure gpsProvider is known when gpsMagDetect is called
     gpsState.gpsConfig = gpsConfig();
-    gpsState.baseTimeoutMs = (gpsState.gpsConfig->provider == GPS_NMEA) ? GPS_TIMEOUT*2 : GPS_TIMEOUT;
+    gpsState.baseTimeoutMs = (gpsState.gpsConfig->provider == GPS_NMEA) ? GPS_TIMEOUT * 2 : GPS_TIMEOUT;
 }
 
 void gpsInit(void)
@@ -276,19 +280,22 @@ void gpsInit(void)
     gpsSetState(GPS_UNKNOWN);
 
     // If given GPS provider has protocol() function not defined - we can't use it
-    if (!gpsProviders[gpsState.gpsConfig->provider].protocol) {
+    if (!gpsProviders[gpsState.gpsConfig->provider].protocol)
+    {
         featureClear(FEATURE_GPS);
         return;
     }
 
     // Shortcut for driver-based GPS (MSP)
-    if (gpsProviders[gpsState.gpsConfig->provider].isDriverBased) {
+    if (gpsProviders[gpsState.gpsConfig->provider].isDriverBased)
+    {
         gpsSetState(GPS_INITIALIZING);
         return;
     }
 
-    serialPortConfig_t * gpsPortConfig = findSerialPortConfig(FUNCTION_GPS);
-    if (!gpsPortConfig) {
+    serialPortConfig_t *gpsPortConfig = findSerialPortConfig(FUNCTION_GPS);
+    if (!gpsPortConfig)
+    {
         featureClear(FEATURE_GPS);
         return;
     }
@@ -296,8 +303,10 @@ void gpsInit(void)
     // Start with baud rate index as configured for serial port
     int baudrateIndex;
     gpsState.baudrateIndex = GPS_BAUDRATE_115200;
-    for (baudrateIndex = 0, gpsState.baudrateIndex = 0; baudrateIndex < GPS_BAUDRATE_COUNT; baudrateIndex++) {
-        if (gpsToSerialBaudRate[baudrateIndex] == gpsPortConfig->gps_baudrateIndex) {
+    for (baudrateIndex = 0, gpsState.baudrateIndex = 0; baudrateIndex < GPS_BAUDRATE_COUNT; baudrateIndex++)
+    {
+        if (gpsToSerialBaudRate[baudrateIndex] == gpsPortConfig->gps_baudrateIndex)
+        {
             gpsState.baudrateIndex = baudrateIndex;
             break;
         }
@@ -308,10 +317,13 @@ void gpsInit(void)
 
     // Open serial port
     portMode_t mode = gpsProviders[gpsState.gpsConfig->provider].portMode;
-    gpsState.gpsPort = openSerialPort(gpsPortConfig->identifier, FUNCTION_GPS, NULL, NULL, baudRates[gpsToSerialBaudRate[gpsState.baudrateIndex]], mode, SERIAL_NOT_INVERTED);
+    gpsState.gpsPort =
+        openSerialPort(gpsPortConfig->identifier, FUNCTION_GPS, NULL, NULL,
+                       baudRates[gpsToSerialBaudRate[gpsState.baudrateIndex]], mode, SERIAL_NOT_INVERTED);
 
     // Check if we have a serial port opened
-    if (!gpsState.gpsPort) {
+    if (!gpsState.gpsPort)
+    {
         featureClear(FEATURE_GPS);
         return;
     }
@@ -332,21 +344,24 @@ uint16_t gpsConstrainHDOP(uint32_t hdop)
 bool gpsUpdate(void)
 {
     // Sanity check
-    if (!feature(FEATURE_GPS)) {
+    if (!feature(FEATURE_GPS))
+    {
         sensorsClear(SENSOR_GPS);
         DISABLE_STATE(GPS_FIX);
         return false;
     }
 
     /* Extra delay for at least 2 seconds after booting to give GPS time to initialise */
-    if (!isMPUSoftReset() && (millis() < GPS_BOOT_DELAY)) {
+    if (!isMPUSoftReset() && (millis() < GPS_BOOT_DELAY))
+    {
         sensorsClear(SENSOR_GPS);
         DISABLE_STATE(GPS_FIX);
         return false;
     }
 
 #ifdef USE_SIMULATOR
-    if (ARMING_FLAG(SIMULATOR_MODE_HITL)) {
+    if (ARMING_FLAG(SIMULATOR_MODE_HITL))
+    {
         gpsUpdateTime();
         gpsSetState(GPS_RUNNING);
         sensorsSet(SENSOR_GPS);
@@ -357,11 +372,13 @@ bool gpsUpdate(void)
     // Assume that we don't have new data this run
     gpsSol.flags.hasNewData = false;
 
-    switch (gpsState.state) {
+    switch (gpsState.state)
+    {
     default:
     case GPS_INITIALIZING:
         // Wait for GPS_INIT_DELAY before starting the GPS protocol thread
-        if ((millis() - gpsState.lastStateSwitchMs) >= GPS_INIT_DELAY) {
+        if ((millis() - gpsState.lastStateSwitchMs) >= GPS_INIT_DELAY)
+        {
             // Reset internals
             DISABLE_STATE(GPS_FIX);
             gpsSol.fixType = GPS_NO_FIX;
@@ -383,7 +400,8 @@ bool gpsUpdate(void)
         gpsProviders[gpsState.gpsConfig->provider].protocol();
 
         // Check for GPS timeout
-        if ((millis() - gpsState.lastMessageMs) > gpsState.baseTimeoutMs) {
+        if ((millis() - gpsState.lastMessageMs) > gpsState.baseTimeoutMs)
+        {
             sensorsClear(SENSOR_GPS);
             DISABLE_STATE(GPS_FIX);
             gpsSol.fixType = GPS_NO_FIX;
@@ -406,20 +424,23 @@ void gpsEnablePassthrough(serialPort_t *gpsPassthroughPort)
     waitForSerialPortToFinishTransmitting(gpsPassthroughPort);
 
     if (!(gpsState.gpsPort->mode & MODE_TX))
-    serialSetMode(gpsState.gpsPort, gpsState.gpsPort->mode | MODE_TX);
+        serialSetMode(gpsState.gpsPort, gpsState.gpsPort->mode | MODE_TX);
 
     LED0_OFF;
     LED1_OFF;
 
     char c;
-    while (1) {
-        if (serialRxBytesWaiting(gpsState.gpsPort)) {
+    while (1)
+    {
+        if (serialRxBytesWaiting(gpsState.gpsPort))
+        {
             LED0_ON;
             c = serialRead(gpsState.gpsPort);
             serialWrite(gpsPassthroughPort, c);
             LED0_OFF;
         }
-        if (serialRxBytesWaiting(gpsPassthroughPort)) {
+        if (serialRxBytesWaiting(gpsPassthroughPort))
+        {
             LED1_ON;
             c = serialRead(gpsPassthroughPort);
             serialWrite(gpsState.gpsPort, c);
@@ -431,7 +452,8 @@ void gpsEnablePassthrough(serialPort_t *gpsPassthroughPort)
 void updateGpsIndicator(timeUs_t currentTimeUs)
 {
     static timeUs_t GPSLEDTime;
-    if ((int32_t)(currentTimeUs - GPSLEDTime) >= 0 && (gpsSol.numSat>= 5)) {
+    if ((int32_t)(currentTimeUs - GPSLEDTime) >= 0 && (gpsSol.numSat >= 5))
+    {
         GPSLEDTime = currentTimeUs + 150000;
         LED1_TOGGLE;
     }
