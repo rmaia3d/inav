@@ -225,10 +225,7 @@ uint8_t getBfCharacter(uint8_t ch, uint8_t page)
         return BF_SYM_MILES;
         /*
             case SYM_NM:
-                return BF_SYM_NM;
-
-            case SYM_WIND_HORIZONTAL:
-                return BF_SYM_WIND_HORIZONTAL;
+                return BF_SYM_NM;            
 
             case SYM_WIND_VERTICAL:
                 return BF_SYM_WIND_VERTICAL;
@@ -236,10 +233,13 @@ uint8_t getBfCharacter(uint8_t ch, uint8_t page)
             case SYM_3D_KT:
                 return BF_SYM_3D_KT;
 
-
-            case SYM_AIR:
-                return BF_SYM_AIR;
         */
+
+    case SYM_WIND_HORIZONTAL:
+        return 'W';     // W for wind
+
+    case SYM_AIR:
+        return 'A';     // A for Airspeed        
 
     case SYM_3D_KMH:
         return BF_SYM_KPH;
@@ -640,43 +640,42 @@ uint8_t getBfCharacter(uint8_t ch, uint8_t page)
 
             case SYM_AH_CH_AIRCRAFT4:
                 return BF_SYM_AH_CH_AIRCRAFT4;
-
-            case SYM_HUD_ARROWS_L1:
-                return BF_SYM_HUD_ARROWS_L1;
-
-            case SYM_HUD_ARROWS_L2:
-                return BF_SYM_HUD_ARROWS_L2;
-
-            case SYM_HUD_ARROWS_L3:
-                return BF_SYM_HUD_ARROWS_L3;
-
-            case SYM_HUD_ARROWS_R1:
-                return BF_SYM_HUD_ARROWS_R1;
-
-            case SYM_HUD_ARROWS_R2:
-                return BF_SYM_HUD_ARROWS_R2;
-
-            case SYM_HUD_ARROWS_R3:
-                return BF_SYM_HUD_ARROWS_R3;
-
-            case SYM_HUD_ARROWS_U1:
-                return BF_SYM_HUD_ARROWS_U1;
-
-            case SYM_HUD_ARROWS_U2:
-                return BF_SYM_HUD_ARROWS_U2;
-
-            case SYM_HUD_ARROWS_U3:
-                return BF_SYM_HUD_ARROWS_U3;
-
-            case SYM_HUD_ARROWS_D1:
-                return BF_SYM_HUD_ARROWS_D1;
-
-            case SYM_HUD_ARROWS_D2:
-                return BF_SYM_HUD_ARROWS_D2;
-
-            case SYM_HUD_ARROWS_D3:
-                return BF_SYM_HUD_ARROWS_D3;
         */
+    case SYM_HUD_ARROWS_L1:
+        return BF_SYM_ARROW_WEST;
+
+    case SYM_HUD_ARROWS_L2:
+        return BF_SYM_ARROW_WEST;
+
+    case SYM_HUD_ARROWS_L3:
+        return BF_SYM_ARROW_WEST;
+
+    case SYM_HUD_ARROWS_R1:
+        return BF_SYM_ARROW_EAST;
+
+    case SYM_HUD_ARROWS_R2:
+        return BF_SYM_ARROW_EAST;
+
+    case SYM_HUD_ARROWS_R3:
+        return BF_SYM_ARROW_EAST;
+
+    case SYM_HUD_ARROWS_U1:
+        return BF_SYM_ARROW_NORTH;
+
+    case SYM_HUD_ARROWS_U2:
+        return BF_SYM_ARROW_NORTH;
+
+    case SYM_HUD_ARROWS_U3:
+        return BF_SYM_ARROW_NORTH;
+
+    case SYM_HUD_ARROWS_D1:
+        return BF_SYM_ARROW_SOUTH;
+
+    case SYM_HUD_ARROWS_D2:
+        return BF_SYM_ARROW_SOUTH;
+
+    case SYM_HUD_ARROWS_D3:
+        return BF_SYM_ARROW_SOUTH;
 
     case SYM_SERVO_PAN_IS_CENTRED:
         return 'C'; // Centered pan servo
