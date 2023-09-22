@@ -4231,7 +4231,17 @@ static void osdShowStats(bool isSinglePageStatsCompatible, uint8_t page)
             displayWrite(osdDisplayPort, statValuesX, top++, buff);
 
             displayWrite(osdDisplayPort, statNameX, top, "MAX POWER        :");
-            bool kiloWatt = osdFormatCentiNumber(buff, stats.max_power, 1000, 2, 2, 3);
+            #ifndef DISABLE_MSP_BF_COMPAT   // IF BFCOMPAT is not supported, there's no need to check for it and change the values
+                bool kiloWatt = false;
+                if (isBfCompatibleVideoSystem(osdConfig())) {
+                    kiloWatt = osdFormatCentiNumber(buff, stats.max_power, 1000, 2, 2, 4);
+                }
+                else {
+                    kiloWatt = osdFormatCentiNumber(buff, stats.max_power, 1000, 2, 2, 3);
+                }
+            #else
+                bool kiloWatt = osdFormatCentiNumber(buff, stats.max_power, 1000, 2, 2, 3);    
+            #endif            
             buff[3] = kiloWatt ? SYM_KILOWATT : SYM_WATT;
             buff[4] = '\0';
             displayWrite(osdDisplayPort, statValuesX, top++, buff);
