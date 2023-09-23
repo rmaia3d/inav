@@ -3146,18 +3146,7 @@ static bool osdDrawSingleElement(uint8_t item)
             horizontalWindSpeed = getEstimatedHorizontalWindSpeed(&angle);
             int16_t windDirection = osdGetHeadingAngle( CENTIDEGREES_TO_DEGREES((int)angle) - DECIDEGREES_TO_DEGREES(attitude.values.yaw) + 22);
             buff[0] = SYM_WIND_HORIZONTAL;
-#ifndef DISABLE_MSP_BF_COMPAT // IF BFCOMPAT is not supported, there's no need to check for it and change the values
-            if (isBfCompatibleVideoSystem(osdConfig())) {
-                // Use same arrow as home direction
-                buff[1] = SYM_ARROW_UP + (windDirection * 4 / 90);
-            }
-            else {
-                // Use default symbols
-                buff[1] = SYM_DIRECTION + (windDirection * 2 / 90);    
-            }
-#else
             buff[1] = SYM_DIRECTION + (windDirection * 2 / 90);
-#endif
             osdFormatWindSpeedStr(buff + 2, horizontalWindSpeed, valid);
             break;
         }
