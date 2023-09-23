@@ -98,8 +98,35 @@ uint8_t getBfCharacter(uint8_t ch, uint8_t page)
             case SYM_AH_DECORATION_DOWN:
                 return BF_SYM_AH_DECORATION;
         */
+    case SYM_AH_DIRECTION_UP:
+        return BF_SYM_ARROW_SMALL_UP;
+
+    case SYM_AH_DIRECTION_DOWN:
+        return BF_SYM_ARROW_SMALL_DOWN;
+
     case SYM_DIRECTION:
         return BF_SYM_OVER_HOME; // Small up pointing arrow
+    
+    case SYM_DIRECTION + 1: // NE pointing arrow
+        return BF_SYM_ARROW_7;
+    
+    case SYM_DIRECTION + 2: // E pointing arrow
+        return BF_SYM_ARROW_EAST;
+    
+    case SYM_DIRECTION + 3: // SE pointing arrow
+        return BF_SYM_ARROW_3;
+    
+    case SYM_DIRECTION + 4: // S pointing arrow
+        return BF_SYM_ARROW_SOUTH;
+    
+    case SYM_DIRECTION + 5: // SW pointing arrow
+        return BF_SYM_ARROW_15;
+    
+    case SYM_DIRECTION + 6: // W pointing arrow
+        return BF_SYM_ARROW_WEST;
+
+    case SYM_DIRECTION + 7: // NW pointing arrow
+        return BF_SYM_ARROW_11;
 
     case SYM_VOLT:
         return BF_SYM_VOLT;
