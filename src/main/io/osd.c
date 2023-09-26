@@ -2809,9 +2809,15 @@ static bool osdDrawSingleElement(uint8_t item)
 
     case OSD_POWER:
         {
-            bool kiloWatt = osdFormatCentiNumber(buff, getPower(), 1000, 2, 2, 3);
-            buff[3] = kiloWatt ? SYM_KILOWATT : SYM_WATT;
-            buff[4] = '\0';
+            uint8_t digits = 3U;                
+            #ifndef DISABLE_MSP_BF_COMPAT // IF BFCOMPAT is not supported, there's no need to check for it and change the values
+                if (isBfCompatibleVideoSystem(osdConfig())) {
+                    digits = 4U;
+                }            
+            #endif
+            bool kiloWatt = osdFormatCentiNumber(buff, getPower(), 1000, 2, 2, digits);
+            buff[digits] = kiloWatt ? SYM_KILOWATT : SYM_WATT;
+            buff[digits + 1] = '\0';
 
             uint8_t current_alarm = osdConfig()->current_alarm;
             if ((current_alarm > 0) && ((getAmperage() / 100.0f) > current_alarm)) {
@@ -3446,9 +3452,15 @@ static bool osdDrawSingleElement(uint8_t item)
     case OSD_PLIMIT_ACTIVE_POWER_LIMIT:
         {
             if (currentBatteryProfile->powerLimits.continuousPower) {
-                bool kiloWatt = osdFormatCentiNumber(buff, powerLimiterGetActivePowerLimit(), 1000, 2, 2, 3);
-                buff[3] = kiloWatt ? SYM_KILOWATT : SYM_WATT;
-                buff[4] = '\0';
+                uint8_t digits = 3U;                
+                #ifndef DISABLE_MSP_BF_COMPAT // IF BFCOMPAT is not supported, there's no need to check for it and change the values
+                    if (isBfCompatibleVideoSystem(osdConfig())) {
+                        digits = 4U;
+                    }            
+                #endif
+                bool kiloWatt = osdFormatCentiNumber(buff, powerLimiterGetActivePowerLimit(), 1000, 2, 2, digits);
+                buff[digits] = kiloWatt ? SYM_KILOWATT : SYM_WATT;
+                buff[digits + 1U] = '\0';
 
                 if (powerLimiterIsLimitingPower()) {
                     TEXT_ATTRIBUTES_ADD_BLINK(elemAttr);
@@ -4220,19 +4232,16 @@ static void osdShowStats(bool isSinglePageStatsCompatible, uint8_t page)
             displayWrite(osdDisplayPort, statValuesX, top++, buff);
 
             displayWrite(osdDisplayPort, statNameX, top, "MAX POWER        :");
-            #ifndef DISABLE_MSP_BF_COMPAT   // IF BFCOMPAT is not supported, there's no need to check for it and change the values
-                bool kiloWatt = false;
+            uint8_t digits = 3U;
+            bool kiloWatt = false;
+            #ifndef DISABLE_MSP_BF_COMPAT // IF BFCOMPAT is not supported, there's no need to check for it and change the values
                 if (isBfCompatibleVideoSystem(osdConfig())) {
-                    kiloWatt = osdFormatCentiNumber(buff, stats.max_power, 1000, 2, 2, 4);
-                }
-                else {
-                    kiloWatt = osdFormatCentiNumber(buff, stats.max_power, 1000, 2, 2, 3);
-                }
-            #else
-                bool kiloWatt = osdFormatCentiNumber(buff, stats.max_power, 1000, 2, 2, 3);    
-            #endif            
-            buff[3] = kiloWatt ? SYM_KILOWATT : SYM_WATT;
-            buff[4] = '\0';
+                    digits = 4U;
+                }            
+            #endif
+            kiloWatt = osdFormatCentiNumber(buff, stats.max_power, 1000, 2, 2, digits);            
+            buff[digits] = kiloWatt ? SYM_KILOWATT : SYM_WATT;
+            buff[digits + 1U] = '\0';
             displayWrite(osdDisplayPort, statValuesX, top++, buff);
 
             displayWrite(osdDisplayPort, statNameX, top, "USED CAPACITY    :");
